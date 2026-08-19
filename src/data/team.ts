@@ -1,0 +1,58 @@
+import { TeamMember } from '@/types';
+
+export const TEAM_DATA: TeamMember[] = [
+  {
+    id: 'team-01',
+    name: '[OFFICER / LEADER NAME]',
+    position: 'Director General / Commander-in-Chief',
+    department: 'Executive Directorate',
+    bio: 'Responsible for overall strategic governance, institutional vision, and guiding LCB BRIGADE towards its core mission of leadership, unity, and community service.',
+    emailContact: 'directorate@lcbbrigade.org',
+    isPlaceholder: true,
+  },
+  {
+    id: 'team-02',
+    name: '[OFFICER / LEADER NAME]',
+    position: 'Deputy Director of Operations',
+    department: 'Operations & Logistics',
+    bio: 'Oversees operational logistics, field service deployment, emergency response readiness, and regional brigade coordination across active zones.',
+    emailContact: 'operations@lcbbrigade.org',
+    isPlaceholder: true,
+  },
+  {
+    id: 'team-03',
+    name: '[OFFICER / LEADER NAME]',
+    position: 'Head of Community Outreach',
+    department: 'Public Service & Relations',
+    bio: 'Leads public engagement programs, community partnership initiatives, social advocacy drives, and volunteer liaison operations.',
+    emailContact: 'outreach@lcbbrigade.org',
+    isPlaceholder: true,
+  },
+  {
+    id: 'team-04',
+    name: '[OFFICER / LEADER NAME]',
+    position: 'Chief Governance & Compliance Officer',
+    department: 'Charter & Ethics Committee',
+    bio: 'Ensures strict adherence to institutional ethics, member conduct guidelines, charter principles, and regulatory transparency.',
+    emailContact: 'governance@lcbbrigade.org',
+    isPlaceholder: true,
+  },
+  {
+    id: 'team-05',
+    name: '[OFFICER / LEADER NAME]',
+    position: 'Director of Member Development',
+    department: 'Training & Capability',
+    bio: 'Designs and manages leadership development seminars, skill enhancement workshops, and volunteer induction programs.',
+    emailContact: 'training@lcbbrigade.org',
+    isPlaceholder: true,
+  },
+  {
+    id: 'team-06',
+    name: '[OFFICER / LEADER NAME]',
+    position: 'Treasurer & Resource Secretariat',
+    department: 'Finance & Administration',
+    bio: 'Directs institutional financial stewardship, resource allocation, donation management, and annual audit reporting.',
+    emailContact: 'finance@lcbbrigade.org',
+    isPlaceholder: true,
+  },
+];
