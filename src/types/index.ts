@@ -10,25 +10,48 @@ export interface Meeting {
   isPlaceholder?: boolean;
 }
 
-export interface Service {
-  id: string;
-  iconName: string;
-  name: string;
-  category: 'Community Service' | 'Leadership' | 'Outreach' | 'Support' | 'Development' | 'Social Initiatives';
-  shortDescription: string;
-  fullDescription: string;
-  impactMetrics?: string;
-  isPlaceholder?: boolean;
-}
-
 export interface TeamMember {
   id: string;
   name: string;
   position: string;
-  bio: string;
-  image?: string;
   department?: string;
+  tenure?: string;
+  termDates?: string;
+  bio: string;
+  experienceHighlight?: string;
+  image?: string;
   emailContact?: string;
+  isOfficial: boolean;
+  isPlaceholder?: boolean;
+  isDemo?: boolean;
+}
+
+export interface LeadershipTenure {
+  id: string;
+  tenureYear: string;
+  termDates: string;
+  president: string;
+  teamTitle: string;
+  summary: string;
+  backgroundNote?: string;
+  keyInitiatives?: string[];
+  members: TeamMember[];
+  isOfficial: boolean;
+  isDemo?: boolean;
+}
+
+export interface Service {
+  id: string;
+  iconName: string;
+  name: string;
+  category: string;
+  year?: string;
+  partnerAssociation?: string;
+  shortDescription: string;
+  fullDescription: string;
+  impactMetrics?: string;
+  isOfficial: boolean;
+  isDemo?: boolean;
   isPlaceholder?: boolean;
 }
 
@@ -39,7 +62,11 @@ export interface Achievement {
   category: string;
   description: string;
   impact: string;
+  association?: string;
+  leadership?: string;
   image?: string;
+  isOfficial: boolean;
+  isDemo?: boolean;
   isPlaceholder?: boolean;
 }
 

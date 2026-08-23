@@ -2,8 +2,10 @@ export const ORGANIZATION = {
   name: 'LCB BRIGADE',
   tagline: 'Leadership • Service • Unity • Responsibility • Excellence',
   shortDescription:
-    'Official website of LCB BRIGADE — dedicated to public service, community development, disciplined leadership, and collective unity.',
-  establishedYear: '2024',
+    'Official website of LCB BRIGADE — chartered in April 2021, dedicated to public service, community development, disciplined leadership, and collective unity.',
+  establishedYear: '2021',
+  establishedMonth: 'April',
+  charterPresident: 'L. A. V. Nagaraj and Team',
   contact: {
     email: 'contact@lcbbrigade.org',
     phone: '+91 (0) 800-LCB-BRIGADE',
@@ -29,7 +31,6 @@ export const NAV_LINKS = [
 ];
 
 export const DONATION_CONFIG = {
-  // Stubs for future integration with payment backend / payment gateway URL
   paymentGatewayUrl: process.env.NEXT_PUBLIC_DONATION_PAYMENT_URL || '#',
   currency: '₹',
   defaultOptions: [

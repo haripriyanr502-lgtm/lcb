@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, ShieldCheck, Calendar, BookOpen, Award, Users, HeartHandshake, UserPlus } from 'lucide-react';
+import { ArrowRight, Calendar, BookOpen, Users, HeartHandshake, UserPlus } from 'lucide-react';
 import { HeroSection } from '@/components/hero/HeroSection';
 import { Container } from '@/components/sections/Container';
 import { SectionHeading } from '@/components/sections/SectionHeading';
@@ -9,7 +9,6 @@ import { TeamCard } from '@/components/team/TeamCard';
 import { MEETINGS_DATA } from '@/data/meetings';
 import { SERVICES_DATA } from '@/data/services';
 import { TEAM_DATA } from '@/data/team';
-import { CHARTER_SECTIONS } from '@/data/charter';
 
 export default function HomePage() {
   const upcomingMeetings = MEETINGS_DATA.filter((m) => m.status === 'upcoming').slice(0, 3);

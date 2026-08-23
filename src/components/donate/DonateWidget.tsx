@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { HeartHandshake, ShieldCheck, CreditCard, Lock, Sparkles, CheckCircle2 } from 'lucide-react';
+import { HeartHandshake, ShieldCheck, Lock, Sparkles } from 'lucide-react';
 import { DONATION_CONFIG } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 

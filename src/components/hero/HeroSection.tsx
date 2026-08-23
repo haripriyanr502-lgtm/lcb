@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, ArrowRight, HeartHandshake, UserPlus, Award, Users, CalendarCheck, FileText } from 'lucide-react';
+import { Shield, HeartHandshake, UserPlus, Award, Users, CalendarCheck, FileText } from 'lucide-react';
 import { ORGANIZATION } from '@/lib/constants';
 import { Container } from '@/components/sections/Container';
 

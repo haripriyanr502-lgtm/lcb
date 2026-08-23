@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Container } from '@/components/sections/Container';
 import { DonateWidget } from '@/components/donate/DonateWidget';
-import { HeartHandshake, ShieldCheck } from 'lucide-react';
+import { HeartHandshake } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Support & Public Donations',

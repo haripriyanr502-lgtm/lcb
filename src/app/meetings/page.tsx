@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Container } from '@/components/sections/Container';
-import { SectionHeading } from '@/components/sections/SectionHeading';
 import { MeetingCard } from '@/components/meetings/MeetingCard';
 import { MEETINGS_DATA } from '@/data/meetings';
 import { Calendar, CheckCircle2, Clock } from 'lucide-react';

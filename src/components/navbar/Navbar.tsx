@@ -26,11 +26,6 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
-
   const isHome = pathname === '/';
 
   return (
@@ -152,6 +147,7 @@ export const Navbar: React.FC = () => {
                   <Link
                     key={link.href}
                     href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
                       'px-4 py-3 text-base font-semibold rounded-lg flex items-center justify-between transition-colors',
                       isActive

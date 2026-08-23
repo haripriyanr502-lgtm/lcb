@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Shield, Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
+import { Shield, Mail, Phone, MapPin } from 'lucide-react';
 import { ORGANIZATION, NAV_LINKS } from '@/lib/constants';
 import { Container } from '@/components/sections/Container';
 
@@ -24,7 +24,7 @@ export const Footer: React.FC = () => {
             </p>
             <div className="pt-2">
               <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-md">
-                Established {ORGANIZATION.establishedYear} • Official Institution
+                Established {ORGANIZATION.establishedMonth} {ORGANIZATION.establishedYear} • Official Institution
               </span>
             </div>
           </div>

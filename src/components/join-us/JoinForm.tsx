@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserCheck, Send, CheckCircle2, Shield, AlertCircle, Sparkles } from 'lucide-react';
+import { Send, CheckCircle2, Sparkles } from 'lucide-react';
 import { JoinApplication } from '@/types';
 import { JOIN_SUBMISSION_ENDPOINT } from '@/lib/constants';
 
