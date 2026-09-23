@@ -2,10 +2,12 @@
 
 @layer base {
   :root {
-    --primary-blue: #0f2c59;
-    --royal-blue: #1d4ed8;
-    --accent-blue: #2563eb;
-    --accent-gold: #d4af37;
+    --primary-blue: #0b1e36;
+    --royal-blue: #0f2c59;
+    --accent-blue: #1d4ed8;
+    --lions-gold: #d4af37;
+    --lions-gold-dark: #b8860b;
+    --lions-gold-light: #fef3c7;
     --bg-light: #f8fafc;
     --surface-white: #ffffff;
     --text-primary: #0f172a;
@@ -37,7 +39,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #94a3b8;
+    background: #cbd5e1;
     border-radius: 4px;
   }
 
@@ -46,66 +48,78 @@
   }
 }
 
-/* Custom Utilities for Formal Design */
-.bg-navy-deep {
-  background-color: #0b192c;
+/* Authentic Lions Club Identity Utilities */
+.bg-lions-navy {
+  background-color: #0b1e36;
 }
 
-.bg-navy-dark {
+.bg-lions-dark {
   background-color: #0f2c59;
 }
 
-.bg-navy-medium {
-  background-color: #1e3e62;
+.bg-lions-gold {
+  background-color: #d4af37;
 }
 
-.text-gold-accent {
+.text-lions-gold {
   color: #d4af37;
 }
 
-.border-gold-accent {
+.text-lions-navy {
+  color: #0b1e36;
+}
+
+.border-lions-gold {
   border-color: #d4af37;
 }
 
+/* Subtle, dignified hero background */
 .hero-pattern {
-  background-color: #0a192f;
+  background-color: #081628;
   background-image: 
-    radial-gradient(at 10% 20%, rgba(29, 78, 216, 0.25) 0px, transparent 50%),
-    radial-gradient(at 90% 80%, rgba(212, 175, 55, 0.15) 0px, transparent 50%);
+    radial-gradient(at 15% 25%, rgba(15, 44, 89, 0.4) 0px, transparent 60%),
+    radial-gradient(at 85% 75%, rgba(212, 175, 55, 0.12) 0px, transparent 55%),
+    linear-gradient(to bottom, rgba(8, 22, 40, 0.95), rgba(11, 30, 54, 1));
+}
+
+.hero-subtle-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
 }
 
 .glass-nav-solid {
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  background-color: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
 }
 
 .glass-nav-dark {
-  background-color: rgba(11, 25, 44, 0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  background-color: rgba(11, 30, 54, 0.95);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
 }
 
 .card-hover-effect {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card-hover-effect:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(15, 44, 89, 0.08), 0 8px 10px -6px rgba(15, 44, 89, 0.04);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 30px -6px rgba(11, 30, 54, 0.08), 0 6px 12px -4px rgba(11, 30, 54, 0.04);
 }
 
-.badge-placeholder {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  background-color: rgba(212, 175, 55, 0.12);
-  color: #92400e;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+/* Organizational Tree Visual Connectors */
+.org-tree-line-vertical {
+  width: 2px;
+  background: linear-gradient(to bottom, #d4af37, #cbd5e1);
+  margin: 0 auto;
+}
+
+.org-tree-line-horizontal {
+  height: 2px;
+  background-color: #cbd5e1;
 }
 
 @media print {

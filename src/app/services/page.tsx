@@ -4,86 +4,92 @@ import React, { useState } from 'react';
 import { Container } from '@/components/sections/Container';
 import { ServiceCard } from '@/components/services/ServiceCard';
 import { SERVICES_DATA } from '@/data/services';
-import { ShieldCheck, Award, Sparkles, Filter } from 'lucide-react';
+import { ORGANIZATION } from '@/lib/constants';
+import { ShieldCheck, Filter, CheckCircle2, HeartHandshake, Droplets } from 'lucide-react';
 
 export default function ServicesPage() {
-  const [filterMode, setFilterMode] = useState<'all' | 'official' | 'demo'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const categories = [
+    { label: 'All Services', value: 'all' },
+    { label: 'Water Infrastructure', value: 'Civic Infrastructure & Public Health' },
+    { label: 'Food Relief', value: 'Community Welfare & Food Security' },
+    { label: 'Environment', value: 'Environmental Sustainability' },
+    { label: 'Healthcare', value: 'Healthcare & Life Support' },
+    { label: 'Youth Leadership', value: 'Youth Leadership & Social Empowerment' },
+  ];
 
   const filteredServices = SERVICES_DATA.filter((s) => {
-    if (filterMode === 'official') return s.isOfficial;
-    if (filterMode === 'demo') return s.isDemo;
-    return true;
+    if (selectedCategory === 'all') return true;
+    return s.category === selectedCategory;
   });
-
-  const officialProjects = SERVICES_DATA.filter((s) => s.isOfficial);
 
   return (
     <div className="pt-28 pb-20 bg-slate-50 min-h-screen">
       <Container>
         {/* Header Banner */}
-        <div className="bg-blue-950 text-white rounded-3xl p-8 sm:p-12 mb-12 shadow-xl relative overflow-hidden border border-blue-900">
+        <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white rounded-3xl p-8 sm:p-12 mb-10 shadow-xl relative overflow-hidden border border-blue-900">
           <div className="relative z-10 max-w-3xl">
             <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-400/10 border border-amber-400/30 rounded-full mb-4">
               <ShieldCheck className="w-4 h-4 text-amber-400" />
-              Public Service & Community Welfare Projects
+              Community Welfare Directives
             </span>
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
-              Services & Community Projects
+              Services & Public Initiatives
             </h1>
-            <p className="text-slate-300 text-sm sm:text-base mt-4 leading-relaxed">
-              Explore the key service projects and civic initiatives executed by LCB BRIGADE, from emergency food grain relief with partner organizations to environmental tree plantations and community RO clean water installations.
+            <p className="text-slate-300 text-xs sm:text-base mt-4 leading-relaxed">
+              Explore the key community service initiatives and infrastructure installations executed by {ORGANIZATION.fullName}, from the landmark community RO clean water purification plant to coordinated grocery distribution drives and youth Leo Club installations.
             </p>
           </div>
         </div>
 
-        {/* Filter Controls Strip */}
+        {/* Category Filters */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10 pb-4 border-b border-slate-200">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-500" />
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Filter Projects:</span>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+            <Filter className="w-4 h-4 text-slate-400" />
+            <span>Filter Directives:</span>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setFilterMode('all')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                filterMode === 'all'
-                  ? 'bg-blue-950 text-white shadow-sm'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              All Projects ({SERVICES_DATA.length})
-            </button>
-            <button
-              onClick={() => setFilterMode('official')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition-all ${
-                filterMode === 'official'
-                  ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
-                  : 'bg-white text-amber-900 hover:bg-amber-50 border border-amber-300'
-              }`}
-            >
-              <Award className="w-3.5 h-3.5" />
-              Official Service Projects ({officialProjects.length})
-            </button>
-            <button
-              onClick={() => setFilterMode('demo')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition-all ${
-                filterMode === 'demo'
-                  ? 'bg-slate-800 text-white shadow-sm'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-slate-400" />
-              Sample / Demo Archives
-            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => setSelectedCategory(cat.value)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  selectedCategory === cat.value
+                    ? 'bg-blue-950 text-white shadow-sm'
+                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Project Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-14">
           {filteredServices.map((service) => (
             <ServiceCard key={service.id} service={service} />
           ))}
+        </div>
+
+        {/* Lions Service Philosophy Banner */}
+        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm text-center max-w-3xl mx-auto">
+          <HeartHandshake className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+          <h3 className="text-xl font-bold text-slate-900 mb-2">
+            Dedicated to &quot;{ORGANIZATION.motto}&quot;
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto mb-5">
+            Every service initiative is conceptualized, funded, and deployed through collective volunteerism and transparent governance, creating sustainable benefits for community members in need.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-bold uppercase tracking-wider">
+            <span className="text-blue-950">Ethical Governance</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-blue-950">Sustainable Infrastructure</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-blue-950">Youth Development</span>
+          </div>
         </div>
       </Container>
     </div>

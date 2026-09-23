@@ -2,121 +2,133 @@
 
 import React, { useState } from 'react';
 import { Container } from '@/components/sections/Container';
-import { TeamCard } from '@/components/team/TeamCard';
+import { LeadershipTree } from '@/components/team/LeadershipTree';
 import { TenureTimeline } from '@/components/team/TenureTimeline';
-import { TEAM_DATA, LEADERSHIP_TENURES } from '@/data/team';
-import { Users, History, Award, Sparkles, Filter } from 'lucide-react';
+import { HISTORICAL_TENURES, TEAM_DATA } from '@/data/team';
+import { ORGANIZATION } from '@/lib/constants';
+import { Users, History, Award, Shield, Phone, Sparkles, Building2, CheckCircle2 } from 'lucide-react';
 
 export default function TeamPage() {
-  const [filterMode, setFilterMode] = useState<'all' | 'official' | 'demo'>('all');
-
-  const filteredTenures = LEADERSHIP_TENURES.filter((t) => {
-    if (filterMode === 'official') return t.isOfficial;
-    if (filterMode === 'demo') return t.isDemo;
-    return true;
-  });
-
-  const filteredMembers = TEAM_DATA.filter((m) => {
-    if (filterMode === 'official') return m.isOfficial;
-    if (filterMode === 'demo') return m.isDemo;
-    return true;
-  });
+  const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
+  const treasurer = ORGANIZATION.confirmedOfficers.treasurer;
 
   return (
     <div className="pt-28 pb-20 bg-slate-50 min-h-screen">
       <Container>
         {/* Header Banner */}
-        <div className="bg-blue-950 text-white rounded-3xl p-8 sm:p-12 mb-12 shadow-xl relative overflow-hidden border border-blue-900">
+        <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white rounded-3xl p-8 sm:p-12 mb-10 shadow-xl relative overflow-hidden border border-blue-900">
           <div className="relative z-10 max-w-3xl">
             <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-400/10 border border-amber-400/30 rounded-full mb-4">
               <Users className="w-4 h-4 text-amber-400" />
-              Institutional Leadership & Presidential History
+              Organizational Governance
             </span>
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
               Leadership & Directorate
             </h1>
-            <p className="text-slate-300 text-sm sm:text-base mt-4 leading-relaxed">
-              Chronological leadership records of LCB BRIGADE starting from the April 2021 Charter formation, presidential tenures, and directorate officers guiding community service directives.
+            <p className="text-slate-300 text-xs sm:text-base mt-4 leading-relaxed">
+              Explore the organizational hierarchy of {ORGANIZATION.fullName}, featuring the active leadership tree as well as the preserved historical presidential tenures since chartering in April 2021.
             </p>
           </div>
         </div>
 
-        {/* Filter Controls Strip */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10 pb-4 border-b border-slate-200">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-500" />
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Filter Archives:</span>
+        {/* Section Navigation Tabs */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-slate-200">
+          <div className="flex items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl">
+            <button
+              onClick={() => setActiveTab('current')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+                activeTab === 'current'
+                  ? 'bg-blue-950 text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/50'
+              }`}
+            >
+              <Users className="w-4 h-4 text-amber-400" />
+              Active Leadership Tree
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+                activeTab === 'history'
+                  ? 'bg-blue-950 text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/50'
+              }`}
+            >
+              <History className="w-4 h-4 text-amber-400" />
+              Historical Presidential Tenures
+            </button>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setFilterMode('all')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                filterMode === 'all'
-                  ? 'bg-blue-950 text-white shadow-sm'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              All Records ({LEADERSHIP_TENURES.length} Tenures)
-            </button>
-            <button
-              onClick={() => setFilterMode('official')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition-all ${
-                filterMode === 'official'
-                  ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
-                  : 'bg-white text-amber-900 hover:bg-amber-50 border border-amber-300'
-              }`}
-            >
-              <Award className="w-3.5 h-3.5" />
-              Official History Only
-            </button>
-            <button
-              onClick={() => setFilterMode('demo')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition-all ${
-                filterMode === 'demo'
-                  ? 'bg-slate-800 text-white shadow-sm'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-slate-400" />
-              Sample / Demo Archives
-            </button>
+          {/* Quick Confirmed Treasurer Callout */}
+          <div className="flex items-center gap-2 text-xs bg-emerald-50 text-emerald-900 px-3.5 py-2 rounded-xl border border-emerald-200">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-bold">Confirmed Treasurer:</span>
+            <span>{treasurer.name}</span>
+            <span className="text-emerald-700 font-semibold">({treasurer.phone})</span>
           </div>
         </div>
 
-        {/* Section 1: Year-Wise Leadership Tenures */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-6">
-            <History className="w-6 h-6 text-blue-900" />
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">Year-Wise Presidential Tenures</h2>
-              <p className="text-xs text-slate-500">
-                Official tenure records from Charter (April 2021) onwards, organized by annual terms (1 July – 30 June).
+        {/* TAB 1: CURRENT ACTIVE LEADERSHIP TREE */}
+        {activeTab === 'current' && (
+          <div className="space-y-12 animate-in fade-in duration-200">
+            {/* Tree Component with Add Capability */}
+            <LeadershipTree />
+
+            {/* Explanatory Context regarding Pending Confirmations */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-blue-900" />
+                Directorate Structure Guidelines
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-600 leading-relaxed">
+                <div>
+                  <h4 className="font-bold text-slate-900 mb-1">Confirmation Status Notice</h4>
+                  <p>
+                    Per organizational directives, President, 1st Vice President, and Secretary positions are actively reserved in the organizational tree awaiting formal publication of officer names and bios by the Directorate. The Treasurer position is confirmed with Ln. GnanaShekar R.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 mb-1">Expandable Architecture</h4>
+                  <p>
+                    The leadership component is completely data-driven. Use the <span className="font-semibold text-slate-900">&quot;+ Add Position / Officer&quot;</span> button above to dynamically attach new office-bearers, coordinators, or committee chairpersons to any node in the hierarchy.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: HISTORICAL PRESIDENTIAL TENURES */}
+        {activeTab === 'history' && (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-200">
+                  Archival Heritage
+                </span>
+              </div>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                Historical Presidential Records (April 2021 – Present)
+              </h2>
+              <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                Archived records of past presidential tenures. These historical leaders are maintained separately from the current active leadership tree to ensure factual accuracy and constitutional distinction.
+              </p>
+            </div>
+
+            {/* Historical Tenures Timeline */}
+            <TenureTimeline tenures={HISTORICAL_TENURES} />
+
+            {/* Historical Verification Notice */}
+            <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-6 text-xs text-amber-950">
+              <h4 className="font-bold uppercase tracking-wider flex items-center gap-2 mb-2 text-amber-900">
+                <Shield className="w-4 h-4 text-amber-700" />
+                Historical Documentation Notice
+              </h4>
+              <p className="leading-relaxed">
+                Historical leadership entries are derived from archival club documentation. Some specific wording and dates remain open for mentor verification. No artificial names or conjectural data have been substituted.
               </p>
             </div>
           </div>
-
-          <TenureTimeline tenures={filteredTenures} />
-        </div>
-
-        {/* Section 2: Directorate & Leadership Cards */}
-        <div>
-          <div className="flex items-center gap-3 mb-6 border-t border-slate-200 pt-10">
-            <Users className="w-6 h-6 text-blue-900" />
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">Leadership & Directorate Profiles</h2>
-              <p className="text-xs text-slate-500">
-                Official leadership records alongside demonstration officer profiles.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredMembers.map((member) => (
-              <TeamCard key={member.id} member={member} />
-            ))}
-          </div>
-        </div>
+        )}
       </Container>
     </div>
   );

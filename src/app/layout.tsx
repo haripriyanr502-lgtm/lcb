@@ -12,26 +12,27 @@ const fontSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'LCB BRIGADE | Official Public Website',
-    template: '%s | LCB BRIGADE',
+    default: `${ORGANIZATION.name} | ${ORGANIZATION.fullName}`,
+    template: `%s | ${ORGANIZATION.name}`,
   },
   description: ORGANIZATION.shortDescription,
   keywords: [
     'LCB BRIGADE',
-    'Public Service',
-    'Leadership',
-    'Civic Unity',
+    'Lions Club Bangalore Brigade',
+    'Lions Clubs International',
     'Community Service',
-    'Official Organization',
+    'Clean Drinking Water RO Plant',
+    'Leadership Development',
+    'Bengaluru Service Organization',
+    'Public Welfare',
   ],
-  authors: [{ name: 'LCB BRIGADE Directorate' }],
+  authors: [{ name: `${ORGANIZATION.fullName} Directorate` }],
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://lcbbrigade.org',
-    title: 'LCB BRIGADE | Official Public Website',
+    title: `${ORGANIZATION.name} | ${ORGANIZATION.fullName}`,
     description: ORGANIZATION.shortDescription,
-    siteName: 'LCB BRIGADE',
+    siteName: ORGANIZATION.fullName,
   },
 };
 
