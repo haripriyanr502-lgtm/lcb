@@ -48,7 +48,7 @@ export const SERVICES_DATA: Service[] = [
   {
     id: 'service-blood-donation',
     iconName: 'HeartPulse',
-    name: 'Voluntary Blood Donation Drives',
+    name: 'Voluntary Blood Donation Drives & Healthcare',
     category: 'Healthcare & Life Support',
     year: '2022–2023',
     shortDescription:
@@ -56,6 +56,32 @@ export const SERVICES_DATA: Service[] = [
     fullDescription:
       'Dedicated to saving lives by facilitating blood donation drives. Volunteer donors contribute across blood groups to replenish regional blood banks for emergency trauma care, pediatric surgeries, and critical patient treatments.',
     impactMetrics: 'Essential blood units collected for regional clinical emergency requirements',
+    isOfficial: true,
+  },
+  {
+    id: 'service-vision-healthcare',
+    iconName: 'HeartPulse',
+    name: 'Vision Care & Eye Screening Camps',
+    category: 'Healthcare & Life Support',
+    year: 'Periodic Directives',
+    shortDescription:
+      'Diagnostic eye screening, pediatric vision checkups, and cataract surgery coordination for underserved citizens.',
+    fullDescription:
+      'In line with Lions International global vision directives, LCB Brigade conducts targeted optical screening camps in residential schools and rural areas, detecting visual impairment early and facilitating cataract corrective treatments.',
+    impactMetrics: 'Comprehensive vision diagnostics and school eye screenings delivered to vulnerable groups',
+    isOfficial: true,
+  },
+  {
+    id: 'service-educational-support',
+    iconName: 'GraduationCap',
+    name: 'Student Educational Kit & Notebook Distribution',
+    category: 'Youth Leadership & Social Empowerment',
+    year: 'Annual Directives',
+    shortDescription:
+      'Supplying thousands of notebooks, school bags, and learning materials to government and residential schools.',
+    fullDescription:
+      'Empowering children through uninterrupted education. LCB Brigade distributes thousands of notebooks and school bags annually, encouraging student retention and celebrating national occasions like Independence Day with young scholars.',
+    impactMetrics: 'Over 4,000 notebooks and school bag kits distributed to government school students',
     isOfficial: true,
   },
   {
@@ -72,6 +98,19 @@ export const SERVICES_DATA: Service[] = [
     isOfficial: true,
   },
   {
+    id: 'service-community-welfare',
+    iconName: 'HeartHandshake',
+    name: 'Community Care & Senior Citizen Outreach',
+    category: 'Community Welfare & Food Security',
+    year: 'Community Outreach',
+    shortDescription:
+      'Outreach visits and welfare support drives to old-age homes and specialized schools for differently-abled children.',
+    fullDescription:
+      'Fostering compassionate civic engagement through direct visits and material provisions to senior citizen residential centers and educational institutions for hearing and speech impaired students.',
+    impactMetrics: 'Direct material assistance and compassionate care delivered to senior citizens and special needs children',
+    isOfficial: true,
+  },
+  {
     id: 'service-csr-civic-partnerships',
     iconName: 'Briefcase',
     name: 'CSR Project Mobilization & Execution',
@@ -85,3 +124,7 @@ export const SERVICES_DATA: Service[] = [
     isOfficial: true,
   },
 ];
+
+export function getServiceById(id: string): Service | undefined {
+  return SERVICES_DATA.find((s) => s.id === id);
+}

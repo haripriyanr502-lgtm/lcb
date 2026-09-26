@@ -1,25 +1,62 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/sections/Container';
 import { ServiceCard } from '@/components/services/ServiceCard';
 import { SERVICES_DATA } from '@/data/services';
 import { ORGANIZATION } from '@/lib/constants';
-import { ShieldCheck, Filter, CheckCircle2, HeartHandshake, Droplets } from 'lucide-react';
+import { Service } from '@/types';
+import { CMSService } from '@/types/cms';
+import { ShieldCheck, Filter, HeartHandshake } from 'lucide-react';
 
 export default function ServicesPage() {
+  const [services, setServices] = useState<Service[]>(SERVICES_DATA);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchServices() {
+      try {
+        const res = await fetch('/api/content/services');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.services) && data.services.length > 0) {
+            const mapped: Service[] = data.services.map((s: CMSService) => ({
+              id: s.id,
+              name: s.name,
+              category: s.category,
+              year: s.year,
+              partnerAssociation: s.partnerAssociation,
+              shortDescription: s.shortDescription,
+              fullDescription: s.fullDescription,
+              impactMetrics: s.impactMetrics,
+              iconName: s.iconName || 'Users',
+              isOfficial: true,
+            }));
+            setServices(mapped);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch CMS services, using baseline:', err);
+      }
+    }
+    fetchServices();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const categories = [
     { label: 'All Services', value: 'all' },
     { label: 'Water Infrastructure', value: 'Civic Infrastructure & Public Health' },
     { label: 'Food Relief', value: 'Community Welfare & Food Security' },
     { label: 'Environment', value: 'Environmental Sustainability' },
-    { label: 'Healthcare', value: 'Healthcare & Life Support' },
-    { label: 'Youth Leadership', value: 'Youth Leadership & Social Empowerment' },
+    { label: 'Healthcare & Vision', value: 'Healthcare & Life Support' },
+    { label: 'Youth & Education', value: 'Youth Leadership & Social Empowerment' },
+    { label: 'CSR Partnerships', value: 'Corporate Social Responsibility & Civic Funding' },
   ];
 
-  const filteredServices = SERVICES_DATA.filter((s) => {
+  const filteredServices = services.filter((s) => {
     if (selectedCategory === 'all') return true;
     return s.category === selectedCategory;
   });

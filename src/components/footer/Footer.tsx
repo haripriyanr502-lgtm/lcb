@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Shield, Phone, MapPin, Calendar, HeartHandshake, UserPlus, Users } from 'lucide-react';
+import { Shield, Phone, MapPin, Calendar, HeartHandshake, UserPlus, Users, Lock } from 'lucide-react';
 import { ORGANIZATION, NAV_LINKS } from '@/lib/constants';
 import { Container } from '@/components/sections/Container';
 
@@ -142,6 +142,14 @@ export const Footer: React.FC = () => {
             </Link>
             <Link href="/meetings" className="hover:text-slate-300 transition-colors">
               Assemblies
+            </Link>
+            <Link
+              href="/admin/login"
+              className="text-slate-500 hover:text-amber-400 transition-colors flex items-center gap-1.5 font-medium"
+              title="Secretariat CMS Content Management"
+            >
+              <Lock className="w-3 h-3 text-slate-500" />
+              <span>Admin CMS</span>
             </Link>
           </div>
         </div>

@@ -228,7 +228,7 @@ export const LeadershipTree: React.FC = () => {
 
         <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
           <Info className="w-3.5 h-3.5" />
-          <span>Use "+ Add Position / Officer" to preview additional leadership levels</span>
+          <span>Use &quot;+ Add Position / Officer&quot; to preview additional leadership levels</span>
         </div>
       </div>
 

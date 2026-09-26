@@ -3,9 +3,11 @@
 import React, { useState } from 'react';
 import { Container } from '@/components/sections/Container';
 import { AchievementTimeline } from '@/components/achievements/AchievementTimeline';
+import { VideoCard } from '@/components/media/VideoCard';
 import { ACHIEVEMENTS_DATA } from '@/data/achievements';
+import { getPublishedEventVideos } from '@/data/videos';
 import { ORGANIZATION } from '@/lib/constants';
-import { Award, Filter, Calendar, CheckCircle2, Shield } from 'lucide-react';
+import { Award, Filter, Calendar, CheckCircle2, Shield, Video, AlertCircle } from 'lucide-react';
 
 export default function AchievementsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -99,8 +101,47 @@ export default function AchievementsPage() {
         {/* Milestone Timeline */}
         <AchievementTimeline achievements={filteredAchievements} />
 
+        {/* OFFICIAL DISTRICT & CLUB EVENTS MEDIA SECTION */}
+        <div className="mt-14 scroll-mt-28" id="events-media">
+          <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-10 shadow-sm space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Video className="w-5 h-5 text-blue-900" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-900">
+                    District & Cultural Milestones
+                  </span>
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                  Official Events & Celebrations Media
+                </h2>
+                <p className="text-xs text-slate-600 mt-1 max-w-2xl">
+                  Video recordings of signature celebrations, District 317F Walkathon for Vision, and Karnataka Rajyotsava assemblies.
+                </p>
+              </div>
+
+              <span className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 shrink-0 self-start sm:self-center">
+                {getPublishedEventVideos().length} Verified Events
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {getPublishedEventVideos().map((video) => (
+                <VideoCard key={video.id} video={video} />
+              ))}
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 text-xs text-slate-500 flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+              <p>
+                <span className="font-bold text-slate-700">Archival Verification Protocol:</span> Only verified community events with established correlation to Lions Club of Bangalore Brigade and District 317F directives are published. Non-civic channel uploads remain quarantined in data records pending Secretariat review.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Archival Documentation Note */}
-        <div className="mt-14 bg-white rounded-2xl border border-slate-200 p-6 text-xs text-slate-500 max-w-4xl mx-auto flex items-start gap-3 shadow-sm">
+        <div className="mt-12 bg-white rounded-2xl border border-slate-200 p-6 text-xs text-slate-500 max-w-4xl mx-auto flex items-start gap-3 shadow-sm">
           <Shield className="w-5 h-5 text-blue-900 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <span className="font-bold text-slate-800 block">Archival Authenticity</span>

@@ -28,13 +28,21 @@ export const AddLeaderModal: React.FC<AddLeaderModalProps> = ({
   const [description, setDescription] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
 
-  if (!isOpen) return null;
+  const resetForm = () => {
+    setName('');
+    setPosition('');
+    setPhone('');
+    setPhoto('');
+    setDescription('');
+    setStatus('confirmed');
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const timestamp = Date.now();
     const newNode: OrgTreeNode = {
-      id: `custom-node-${Date.now()}`,
+      id: `custom-node-${timestamp}`,
       name: name.trim() || 'Office Bearer',
       position: position.trim() || 'Appointed Officer',
       status,
@@ -57,14 +65,7 @@ export const AddLeaderModal: React.FC<AddLeaderModalProps> = ({
     }, 1200);
   };
 
-  const resetForm = () => {
-    setName('');
-    setPosition('');
-    setPhone('');
-    setPhoto('');
-    setDescription('');
-    setStatus('confirmed');
-  };
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">

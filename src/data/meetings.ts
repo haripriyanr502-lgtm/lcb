@@ -44,7 +44,7 @@ export const OFFICIAL_MEETING_SCHEDULE: MeetingScheduleInfo = {
 export function getSecondTuesday(year: number, month: number): Date {
   const firstDay = new Date(year, month, 1);
   const dayOfWeek = firstDay.getDay(); // 0 is Sunday, 2 is Tuesday
-  let firstTuesdayOffset = (2 - dayOfWeek + 7) % 7;
+  const firstTuesdayOffset = (2 - dayOfWeek + 7) % 7;
   const firstTuesdayDate = 1 + firstTuesdayOffset;
   const secondTuesdayDate = firstTuesdayDate + 7;
   return new Date(year, month, secondTuesdayDate);

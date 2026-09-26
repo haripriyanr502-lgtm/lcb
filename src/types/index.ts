@@ -133,3 +133,38 @@ export interface DonationOption {
   label: string;
   description: string;
 }
+
+export interface VideoItem {
+  id: string;
+  youtubeId: string;
+  title: string;
+  category: 'service' | 'joint_meeting' | 'event';
+  serviceId?: string;
+  description?: string;
+  channel?: string;
+  date?: string;
+  location?: string;
+  requiresVerification?: boolean;
+  verificationNote?: string;
+  isPublished?: boolean;
+}
+
+export interface CharterMemberNode {
+  id: string;
+  name: string;
+  position: string;
+  charterYear: string;
+  status: 'confirmed' | 'pending_team_submission';
+  sponsorName?: string;
+  sponsorId?: string | null;
+  notes?: string;
+  bio?: string;
+  level: number;
+  parentId?: string | null;
+  children?: CharterMemberNode[];
+  isCustomAdded?: boolean;
+}
+
+export * from './cms';
+
+

@@ -143,3 +143,100 @@ export const CHARTER_SECTIONS: CharterSectionItem[] = [
     isPlaceholder: true,
   },
 ];
+
+/**
+ * CHARTER MEMBERS FAMILY TREE (Genealogical Hierarchy)
+ *
+ * Grounded in official verified founding records:
+ * - Charter President: Ln. L. A. V. Nagaraj and Team (April 2021)
+ * - Rotary International service projects experience
+ * - CSR fund raised: ₹31 Lakh
+ *
+ * The detailed member roll and sponsoring lineage will be populated
+ * upon submission by the Secretariat. No fictitious member names are substituted.
+ */
+export const INITIAL_CHARTER_TREE: import('@/types').CharterMemberNode[] = [
+  {
+    id: 'charter-root-nagaraj',
+    name: 'Ln. L. A. V. Nagaraj and Team',
+    position: 'Founding Charter President',
+    charterYear: 'April 2021',
+    status: 'confirmed',
+    bio: 'Charter President who anchored the foundation of LCB Brigade in April 2021. Brought prior leadership experience from Rotary International service projects and mobilized ₹31 Lakh CSR funds for community welfare.',
+    notes: 'Confirmed Founding President • Rotary International Experience • ₹31 Lakh CSR Raised',
+    level: 1,
+    parentId: null,
+    children: [
+      {
+        id: 'charter-exec-vp1',
+        name: 'Charter 1st Vice President',
+        position: 'Office of Charter 1st Vice President',
+        charterYear: 'April 2021',
+        status: 'pending_team_submission',
+        notes: 'Charter Vice President assisting the presidential office and supervising early service directives.',
+        level: 2,
+        parentId: 'charter-root-nagaraj',
+        children: [
+          {
+            id: 'charter-branch-service',
+            name: 'Charter Community Service Director',
+            position: 'Director — Service Directives',
+            charterYear: 'April 2021',
+            status: 'pending_team_submission',
+            notes: 'Coordinated food distribution with ISKCON & tree plantation.',
+            level: 3,
+            parentId: 'charter-exec-vp1',
+            children: [],
+          },
+        ],
+      },
+      {
+        id: 'charter-exec-secretary',
+        name: 'Charter Secretary',
+        position: 'Office of Charter Secretary',
+        charterYear: 'April 2021',
+        status: 'pending_team_submission',
+        notes: 'Charter Secretariat custodian of founding minutes, district correspondence, and official charter roll.',
+        level: 2,
+        parentId: 'charter-root-nagaraj',
+        children: [
+          {
+            id: 'charter-branch-cadre1',
+            name: 'Inducted Charter Cadre (Section A)',
+            position: 'Charter Members Roll Slot',
+            charterYear: 'April 2021',
+            status: 'pending_team_submission',
+            notes: 'Awaiting team submission of founding inducted members roster.',
+            level: 3,
+            parentId: 'charter-exec-secretary',
+            children: [],
+          },
+        ],
+      },
+      {
+        id: 'charter-exec-treasurer',
+        name: 'Charter Treasurer',
+        position: 'Office of Charter Treasurer',
+        charterYear: 'April 2021',
+        status: 'pending_team_submission',
+        notes: 'Charter Financial Custodian overseeing initial statutory accounts and the ₹31 Lakh CSR disbursement.',
+        level: 2,
+        parentId: 'charter-root-nagaraj',
+        children: [
+          {
+            id: 'charter-branch-cadre2',
+            name: 'Inducted Charter Cadre (Section B)',
+            position: 'Charter Members Roll Slot',
+            charterYear: 'April 2021',
+            status: 'pending_team_submission',
+            notes: 'Awaiting team submission of founding inducted members roster.',
+            level: 3,
+            parentId: 'charter-exec-treasurer',
+            children: [],
+          },
+        ],
+      },
+    ],
+  },
+];
+

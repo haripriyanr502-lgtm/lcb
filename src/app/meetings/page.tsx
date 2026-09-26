@@ -1,11 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Container } from '@/components/sections/Container';
 import { MeetingCard } from '@/components/meetings/MeetingCard';
 import { SecretaryRequestModal } from '@/components/meetings/SecretaryRequestModal';
 import { MEETINGS_DATA, OFFICIAL_MEETING_SCHEDULE } from '@/data/meetings';
+import { JOINT_MEETING_VIDEOS } from '@/data/videos';
+import { VideoCard } from '@/components/media/VideoCard';
 import { SECRETARY_REQUEST_CONFIG, ORGANIZATION } from '@/lib/constants';
+import { VideoItem } from '@/types';
+import { CMSVideo } from '@/types/cms';
 import {
   Calendar,
   Clock,
@@ -16,10 +21,43 @@ import {
   Building2,
   FileText,
   AlertCircle,
+  Video,
+  Settings,
 } from 'lucide-react';
 
 export default function MeetingsPage() {
   const [isSecretaryModalOpen, setIsSecretaryModalOpen] = useState(false);
+  const [jointVideos, setJointVideos] = useState<VideoItem[]>(JOINT_MEETING_VIDEOS);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchVideos() {
+      try {
+        const res = await fetch('/api/content/videos?category=joint_meeting');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.videos) && data.videos.length > 0) {
+            const mapped: VideoItem[] = data.videos.map((v: CMSVideo) => ({
+              id: v.id,
+              youtubeId: v.youtubeId,
+              title: v.title,
+              category: v.category,
+              serviceId: v.serviceId,
+              channel: v.channel,
+              description: v.description,
+            }));
+            setJointVideos(mapped);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load joint meeting videos, using baseline:', err);
+      }
+    }
+    fetchVideos();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="pt-28 pb-20 bg-slate-50 min-h-screen">
@@ -157,6 +195,48 @@ export default function MeetingsPage() {
                 onOpenRequest={() => setIsSecretaryModalOpen(true)}
               />
             ))}
+          </div>
+        </div>
+
+        {/* JOINT MEETINGS & REGIONAL CONCLAVES MEDIA SECTION */}
+        <div className="mb-14 scroll-mt-28" id="joint-meetings">
+          <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-10 shadow-sm space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Video className="w-5 h-5 text-blue-900" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-900">
+                    Inter-Club & Regional Assemblies
+                  </span>
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                  Joint Meetings & Conclave Video Proceedings
+                </h2>
+                <p className="text-xs text-slate-600 mt-1 max-w-2xl">
+                  Official archival video recordings of bilateral club meetings, regional conclaves convened under RC Ln. A. V. Nagaraj, and District 317F leadership schooling conventions.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0 self-start sm:self-center">
+                <span className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300">
+                  {jointVideos.length} Recorded Proceedings
+                </span>
+                <Link
+                  href="/admin/videos"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors"
+                  title="Manage video catalog in CMS"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  <span>CMS</span>
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {jointVideos.map((video) => (
+                <VideoCard key={video.id} video={video} />
+              ))}
+            </div>
           </div>
         </div>
 

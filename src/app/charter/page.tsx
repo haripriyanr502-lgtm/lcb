@@ -1,18 +1,12 @@
 import type { Metadata } from 'next';
-import { Container } from '@/components/sections/Container';
-import { CharterDocument } from '@/components/charter/CharterDocument';
+import { CharterClientView } from '@/components/charter/CharterClientView';
 
 export const metadata: Metadata = {
-  title: 'Official Charter & Governance',
-  description: 'Ratified Institutional Charter of LCB BRIGADE detailing governance structure, mission, objectives, principles, and member code of conduct.',
+  title: 'Official Charter & Member Family Tree',
+  description:
+    'Ratified Institutional Charter of LCB BRIGADE detailing founding leadership family tree, governance structure, mission, objectives, principles, and member code of conduct.',
 };
 
 export default function CharterPage() {
-  return (
-    <div className="pt-28 pb-20 bg-slate-50 min-h-screen">
-      <Container>
-        <CharterDocument />
-      </Container>
-    </div>
-  );
+  return <CharterClientView />;
 }
