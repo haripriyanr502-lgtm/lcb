@@ -224,16 +224,129 @@ function createInitialSeedData(): CMSStoreData {
   };
 }
 
+const TMP_STORE_FILE_PATH = path.join('/tmp', 'cms_store.json');
+
+const KV_REST_URL =
+  process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const KV_REST_TOKEN =
+  process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+const GITHUB_REPO = process.env.GITHUB_REPO || 'haripriyanr502-lgtm/lcb';
+
 let inMemoryStore: CMSStoreData | null = null;
 
+async function loadFromKV(): Promise<CMSStoreData | null> {
+  if (!KV_REST_URL || !KV_REST_TOKEN) return null;
+  try {
+    const res = await fetch(`${KV_REST_URL}/get/lcb_cms_store`, {
+      headers: { Authorization: `Bearer ${KV_REST_TOKEN}` },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    const body = await res.json();
+    if (body && body.result) {
+      const parsed = typeof body.result === 'string' ? JSON.parse(body.result) : body.result;
+      return parsed as CMSStoreData;
+    }
+  } catch (err) {
+    console.error('CMS KV load warning:', err);
+  }
+  return null;
+}
+
+async function saveToKV(data: CMSStoreData): Promise<boolean> {
+  if (!KV_REST_URL || !KV_REST_TOKEN) return false;
+  try {
+    const serialized = JSON.stringify(data);
+    const res = await fetch(`${KV_REST_URL}/set/lcb_cms_store`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${KV_REST_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([serialized]),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('CMS KV save warning:', err);
+    return false;
+  }
+}
+
+async function syncToGitHub(data: CMSStoreData): Promise<void> {
+  if (!GITHUB_TOKEN) return;
+  try {
+    const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
+    const getRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/src/data/cms_store.json`,
+      {
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      }
+    );
+    let sha: string | undefined;
+    if (getRes.ok) {
+      const getJson = await getRes.json();
+      sha = getJson.sha;
+    }
+
+    await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/src/data/cms_store.json`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'chore(cms): update persisted CMS store via Admin Portal',
+          content,
+          sha,
+        }),
+      }
+    );
+  } catch (err) {
+    console.error('CMS GitHub sync warning:', err);
+  }
+}
+
 /**
- * Loads the CMS Store from disk, initializing it with seed data if needed
+ * Loads the CMS Store from available persistence tiers:
+ * 1. In-memory cache
+ * 2. Remote KV (Upstash / Vercel KV)
+ * 3. Serverless /tmp/cms_store.json
+ * 4. Primary disk file src/data/cms_store.json
+ * 5. Verified seed fallback
  */
 export async function loadCMSStore(): Promise<CMSStoreData> {
   if (inMemoryStore) {
     return inMemoryStore;
   }
 
+  // Tier 1: Try Remote KV
+  const kvData = await loadFromKV();
+  if (kvData) {
+    inMemoryStore = kvData;
+    return kvData;
+  }
+
+  // Tier 2: Try /tmp/cms_store.json on serverless environments
+  try {
+    const tmpData = await fs.readFile(TMP_STORE_FILE_PATH, 'utf-8');
+    const parsed = JSON.parse(tmpData) as CMSStoreData;
+    if (parsed && Array.isArray(parsed.services)) {
+      inMemoryStore = parsed;
+      return parsed;
+    }
+  } catch {
+    // /tmp does not exist yet or is not readable, proceed to primary file
+  }
+
+  // Tier 3: Primary codebase file
   try {
     const rawData = await fs.readFile(STORE_FILE_PATH, 'utf-8');
     inMemoryStore = JSON.parse(rawData) as CMSStoreData;
@@ -246,7 +359,6 @@ export async function loadCMSStore(): Promise<CMSStoreData> {
       inMemoryStore = initial;
       return initial;
     }
-    // If parse error or other issue, fallback to initial seed
     console.error('Error loading cms_store.json, creating fallback:', err);
     const initial = createInitialSeedData();
     inMemoryStore = initial;
@@ -255,18 +367,43 @@ export async function loadCMSStore(): Promise<CMSStoreData> {
 }
 
 /**
- * Saves the CMS Store to disk atomically
+ * Saves the CMS Store across persistence tiers:
+ * - Updates in-memory store
+ * - Persists to Upstash/Vercel KV if configured
+ * - Syncs to GitHub repository if GITHUB_TOKEN configured
+ * - Writes to primary disk path or serverless /tmp fallback if read-only
  */
 export async function saveCMSStore(data: CMSStoreData): Promise<void> {
   data.lastUpdated = new Date().toISOString();
   inMemoryStore = data;
 
-  const serialized = JSON.stringify(data, null, 2);
-  const tempPath = `${STORE_FILE_PATH}.tmp-${Date.now()}`;
+  // Sync to Cloud KV (non-blocking failure)
+  saveToKV(data).catch(() => {});
 
-  await fs.mkdir(path.dirname(STORE_FILE_PATH), { recursive: true });
-  await fs.writeFile(tempPath, serialized, 'utf-8');
-  await fs.rename(tempPath, STORE_FILE_PATH);
+  // Sync to GitHub repo (non-blocking failure)
+  syncToGitHub(data).catch(() => {});
+
+  const serialized = JSON.stringify(data, null, 2);
+
+  // Try writing to primary codebase path first (works locally and on traditional servers)
+  try {
+    const tempPath = `${STORE_FILE_PATH}.tmp-${Date.now()}`;
+    await fs.mkdir(path.dirname(STORE_FILE_PATH), { recursive: true });
+    await fs.writeFile(tempPath, serialized, 'utf-8');
+    await fs.rename(tempPath, STORE_FILE_PATH);
+    return;
+  } catch {
+    // If primary file write fails due to read-only filesystem (common on Vercel/Lambda EROFS)
+    // fall back immediately to writable /tmp directory
+    try {
+      const tmpTemp = `${TMP_STORE_FILE_PATH}.tmp-${Date.now()}`;
+      await fs.mkdir(path.dirname(TMP_STORE_FILE_PATH), { recursive: true });
+      await fs.writeFile(tmpTemp, serialized, 'utf-8');
+      await fs.rename(tmpTemp, TMP_STORE_FILE_PATH);
+    } catch (tmpErr) {
+      console.error('Fatal: Failed to write to both primary and /tmp store:', tmpErr);
+    }
+  }
 }
 
 /* =========================================================================

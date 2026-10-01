@@ -1,10 +1,24 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getAdminSessionFromRequest } from '@/lib/cms/auth';
 import {
   getCMSServices,
   saveCMSService,
   deleteCMSService,
 } from '@/lib/cms/store';
+
+export const dynamic = 'force-dynamic';
+
+function triggerRevalidation() {
+  try {
+    revalidatePath('/services');
+    revalidatePath('/services/[id]', 'page');
+    revalidatePath('/api/content/services');
+    revalidatePath('/');
+  } catch (err) {
+    console.error('Revalidation error:', err);
+  }
+}
 
 export async function GET(request: Request) {
   const session = getAdminSessionFromRequest(request);
@@ -48,6 +62,7 @@ export async function POST(request: Request) {
     }
 
     const service = await saveCMSService(body);
+    triggerRevalidation();
     return NextResponse.json({ success: true, service });
   } catch (error) {
     console.error('Failed to create service:', error);
@@ -77,6 +92,7 @@ export async function PUT(request: Request) {
     }
 
     const service = await saveCMSService(body);
+    triggerRevalidation();
     return NextResponse.json({ success: true, service });
   } catch (error) {
     console.error('Failed to update service:', error);
@@ -108,6 +124,9 @@ export async function DELETE(request: Request) {
     }
 
     const success = await deleteCMSService(id);
+    if (success) {
+      triggerRevalidation();
+    }
     return NextResponse.json({ success });
   } catch (error) {
     console.error('Failed to delete service:', error);

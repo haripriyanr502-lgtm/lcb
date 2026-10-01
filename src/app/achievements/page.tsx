@@ -1,16 +1,49 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/sections/Container';
 import { AchievementTimeline } from '@/components/achievements/AchievementTimeline';
 import { VideoCard } from '@/components/media/VideoCard';
 import { ACHIEVEMENTS_DATA } from '@/data/achievements';
 import { getPublishedEventVideos } from '@/data/videos';
 import { ORGANIZATION } from '@/lib/constants';
+import { VideoItem } from '@/types';
+import { CMSVideo } from '@/types/cms';
 import { Award, Filter, Calendar, CheckCircle2, Shield, Video, AlertCircle } from 'lucide-react';
 
 export default function AchievementsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [eventVideos, setEventVideos] = useState<VideoItem[]>(getPublishedEventVideos());
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchVideos() {
+      try {
+        const res = await fetch('/api/content/videos?category=event', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.videos) && data.videos.length > 0) {
+            const mapped: VideoItem[] = data.videos.map((v: CMSVideo) => ({
+              id: v.id,
+              youtubeId: v.youtubeId,
+              title: v.title,
+              category: v.category,
+              serviceId: v.serviceId,
+              channel: v.channel,
+              description: v.description,
+            }));
+            setEventVideos(mapped);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load CMS event videos, using baseline:', err);
+      }
+    }
+    fetchVideos();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const categories = [
     'all',
@@ -121,12 +154,12 @@ export default function AchievementsPage() {
               </div>
 
               <span className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 shrink-0 self-start sm:self-center">
-                {getPublishedEventVideos().length} Verified Events
+                {eventVideos.length} Verified Events
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {getPublishedEventVideos().map((video) => (
+              {eventVideos.map((video) => (
                 <VideoCard key={video.id} video={video} />
               ))}
             </div>

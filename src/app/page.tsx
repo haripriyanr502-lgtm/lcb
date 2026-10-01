@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -28,13 +28,48 @@ import { MEETINGS_DATA, OFFICIAL_MEETING_SCHEDULE } from '@/data/meetings';
 import { SERVICES_DATA } from '@/data/services';
 import { ACHIEVEMENTS_DATA } from '@/data/achievements';
 import { ORGANIZATION, SECRETARY_REQUEST_CONFIG } from '@/lib/constants';
+import { Service } from '@/types';
+import { CMSService } from '@/types/cms';
 
 export default function HomePage() {
   const [isSecretaryModalOpen, setIsSecretaryModalOpen] = useState(false);
-  const featuredServices = SERVICES_DATA.slice(0, 3);
+  const [featuredServices, setFeaturedServices] = useState<Service[]>(SERVICES_DATA.slice(0, 3));
   const featuredMilestones = ACHIEVEMENTS_DATA.slice(0, 4);
   const upcomingMeetings = MEETINGS_DATA.slice(0, 2);
   const treasurer = ORGANIZATION.confirmedOfficers.treasurer;
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchServices() {
+      try {
+        const res = await fetch('/api/content/services', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.services) && data.services.length > 0) {
+            const mapped: Service[] = data.services.slice(0, 3).map((s: CMSService) => ({
+              id: s.id,
+              name: s.name,
+              category: s.category,
+              year: s.year,
+              partnerAssociation: s.partnerAssociation,
+              shortDescription: s.shortDescription,
+              fullDescription: s.fullDescription,
+              impactMetrics: s.impactMetrics,
+              iconName: s.iconName || 'Users',
+              isOfficial: true,
+            }));
+            setFeaturedServices(mapped);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load CMS featured services, using baseline:', err);
+      }
+    }
+    fetchServices();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <>

@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getAdminSessionFromRequest } from '@/lib/cms/auth';
 import {
   getCMSHistory,
   saveCMSHistory,
   deleteCMSHistory,
 } from '@/lib/cms/store';
+
+export const dynamic = 'force-dynamic';
+
+function triggerRevalidation() {
+  try {
+    revalidatePath('/team');
+    revalidatePath('/api/content/history');
+  } catch (err) {
+    console.error('Revalidation error:', err);
+  }
+}
 
 export async function GET(request: Request) {
   const session = getAdminSessionFromRequest(request);
@@ -48,6 +60,7 @@ export async function POST(request: Request) {
     }
 
     const entry = await saveCMSHistory(body);
+    triggerRevalidation();
     return NextResponse.json({ success: true, entry });
   } catch (error) {
     console.error('Failed to create history entry:', error);
@@ -77,6 +90,7 @@ export async function PUT(request: Request) {
     }
 
     const entry = await saveCMSHistory(body);
+    triggerRevalidation();
     return NextResponse.json({ success: true, entry });
   } catch (error) {
     console.error('Failed to update history entry:', error);
@@ -108,6 +122,9 @@ export async function DELETE(request: Request) {
     }
 
     const success = await deleteCMSHistory(id);
+    if (success) {
+      triggerRevalidation();
+    }
     return NextResponse.json({ success });
   } catch (error) {
     console.error('Failed to delete history entry:', error);

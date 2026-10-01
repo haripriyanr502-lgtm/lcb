@@ -20,7 +20,7 @@ export default function TeamPage() {
     let isMounted = true;
     async function fetchHistory() {
       try {
-        const res = await fetch('/api/content/history');
+        const res = await fetch('/api/content/history', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (isMounted && data.success && Array.isArray(data.history) && data.history.length > 0) {

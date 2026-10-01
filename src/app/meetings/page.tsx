@@ -33,7 +33,7 @@ export default function MeetingsPage() {
     let isMounted = true;
     async function fetchVideos() {
       try {
-        const res = await fetch('/api/content/videos?category=joint_meeting');
+        const res = await fetch('/api/content/videos?category=joint_meeting', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (isMounted && data.success && Array.isArray(data.videos) && data.videos.length > 0) {

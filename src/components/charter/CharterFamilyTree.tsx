@@ -23,7 +23,7 @@ export const CharterFamilyTree: React.FC = () => {
     let isMounted = true;
     async function fetchPublishedTree() {
       try {
-        const res = await fetch('/api/content/charter-tree');
+        const res = await fetch('/api/content/charter-tree', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (isMounted && data.success && Array.isArray(data.tree) && data.tree.length > 0) {

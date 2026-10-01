@@ -4,6 +4,7 @@ import { AdminSession } from '@/types/cms';
 export const ADMIN_COOKIE_NAME = 'lcb_admin_session';
 
 const DEFAULT_ADMIN_USERNAME = 'admin@lcbbrigade.com';
+const DEFAULT_ADMIN_PASSWORD = 'LCB@Admin2026!';
 const SESSION_SECRET =
   process.env.ADMIN_SESSION_SECRET ||
   'lcb-brigade-lions-district-317f-secret-key-2026-cms';
@@ -14,7 +15,7 @@ const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 export function getAdminCredentials() {
   return {
     username: process.env.ADMIN_USERNAME || DEFAULT_ADMIN_USERNAME,
-    password: process.env.ADMIN_PASSWORD || '',
+    password: process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD,
   };
 }
 

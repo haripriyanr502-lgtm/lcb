@@ -17,7 +17,7 @@ export default function ServicesPage() {
     let isMounted = true;
     async function fetchServices() {
       try {
-        const res = await fetch('/api/content/services');
+        const res = await fetch('/api/content/services', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (isMounted && data.success && Array.isArray(data.services) && data.services.length > 0) {

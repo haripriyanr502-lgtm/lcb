@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getCMSServiceById } from '@/lib/cms/store';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(
   request: Request,
   props: { params: Promise<{ id: string }> }
@@ -16,7 +19,14 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ success: true, service });
+    return NextResponse.json(
+      { success: true, service },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    );
   } catch (error) {
     console.error('Failed to load service detail:', error);
     return NextResponse.json(
