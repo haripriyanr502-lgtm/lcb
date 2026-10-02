@@ -104,16 +104,47 @@ export async function POST(request: Request) {
         'supabase_schema.sql'
       );
       const sqlContent = await fs.readFile(schemaSqlPath, 'utf-8');
-      const client = await pool.connect();
+      
+      const oldTls = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
       try {
-        await client.query(sqlContent);
+        const client = await pool.connect();
+        try {
+          await client.query(sqlContent);
+        } finally {
+          client.release();
+        }
       } finally {
-        client.release();
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = oldTls;
+      }
+
+      // Immediately seed verified baseline data into newly created tables
+      const store = await loadCMSStore(true);
+      await saveCMSStore(store);
+
+      const supabase = getSupabaseAdminClient();
+      let tableCounts = null;
+      if (supabase) {
+        const [m, s, v, h, mt] = await Promise.all([
+          supabase.from('charter_members').select('*', { count: 'exact', head: true }),
+          supabase.from('services').select('*', { count: 'exact', head: true }),
+          supabase.from('videos').select('*', { count: 'exact', head: true }),
+          supabase.from('history_entries').select('*', { count: 'exact', head: true }),
+          supabase.from('meetings').select('*', { count: 'exact', head: true }),
+        ]);
+        tableCounts = {
+          charter_members: m.count ?? 0,
+          services: s.count ?? 0,
+          videos: v.count ?? 0,
+          history_entries: h.count ?? 0,
+          meetings: mt.count ?? 0,
+        };
       }
 
       return NextResponse.json({
         success: true,
-        message: 'Schema successfully executed against Supabase PostgreSQL database.',
+        message: 'Schema successfully executed and baseline seeded into Supabase PostgreSQL.',
+        tableCounts,
       });
     }
 

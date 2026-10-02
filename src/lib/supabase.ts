@@ -63,8 +63,12 @@ export function getPostgresPool(): Pool | null {
     return null;
   }
   if (!pgPool) {
+    let connStr = POSTGRES_URL;
+    if (connStr.includes('sslmode=')) {
+      connStr = connStr.replace(/sslmode=[^&]+/, 'sslmode=no-verify');
+    }
     pgPool = new Pool({
-      connectionString: POSTGRES_URL,
+      connectionString: connStr,
       ssl: { rejectUnauthorized: false },
       max: 5,
       idleTimeoutMillis: 10000,
