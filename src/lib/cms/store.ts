@@ -17,6 +17,19 @@ import {
 } from '@/data/videos';
 import { HISTORICAL_TENURES } from '@/data/team';
 import { MEETINGS_DATA } from '@/data/meetings';
+import {
+  getSupabaseAdminClient,
+  mapRowToCharterMember,
+  mapCharterMemberToRow,
+  mapRowToService,
+  mapServiceToRow,
+  mapRowToVideo,
+  mapVideoToRow,
+  mapRowToHistory,
+  mapHistoryToRow,
+  mapRowToMeeting,
+  mapMeetingToRow,
+} from '@/lib/supabase';
 
 const STORE_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'cms_store.json');
 
@@ -235,6 +248,124 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO || 'haripriyanr502-lgtm/lcb';
 
 let inMemoryStore: CMSStoreData | null = null;
+let lastCacheTime = 0;
+const CACHE_TTL_MS = 5000; // 5-second TTL prevents unnecessary DB queries while ensuring prompt freshness
+
+/**
+ * Loads baseline seed data from bundled codebase file
+ */
+async function loadBaselineFromFile(): Promise<CMSStoreData> {
+  try {
+    const rawData = await fs.readFile(STORE_FILE_PATH, 'utf-8');
+    return JSON.parse(rawData) as CMSStoreData;
+  } catch {
+    return createInitialSeedData();
+  }
+}
+
+/**
+ * Tier 1: Loads CMS data directly from Supabase PostgreSQL tables
+ */
+async function loadFromSupabase(): Promise<CMSStoreData | null> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return null;
+
+  try {
+    const [membersRes, servicesRes, videosRes, historyRes, meetingsRes] =
+      await Promise.all([
+        supabase
+          .from('charter_members')
+          .select('*')
+          .order('display_order', { ascending: true }),
+        supabase
+          .from('services')
+          .select('*')
+          .order('display_order', { ascending: true }),
+        supabase
+          .from('videos')
+          .select('*')
+          .order('display_order', { ascending: true }),
+        supabase
+          .from('history_entries')
+          .select('*')
+          .order('display_order', { ascending: true }),
+        supabase
+          .from('meetings')
+          .select('*')
+          .order('date', { ascending: true }),
+      ]);
+
+    // If tables do not exist yet (e.g. 42P01 error), log note and return null to use fallback
+    if (membersRes.error || servicesRes.error) {
+      console.warn(
+        'Supabase query notice (tables may need migration):',
+        membersRes.error?.message || servicesRes.error?.message
+      );
+      return null;
+    }
+
+    const charterMembers = (membersRes.data || []).map(mapRowToCharterMember);
+    const services = (servicesRes.data || []).map(mapRowToService);
+    const videos = (videosRes.data || []).map(mapRowToVideo);
+    const historyEntries = (historyRes.data || []).map(mapRowToHistory);
+    const meetings = (meetingsRes.data || []).map(mapRowToMeeting);
+
+    // If tables are connected but completely empty, auto-seed with verified baseline
+    if (charterMembers.length === 0 && services.length === 0) {
+      console.log('Supabase tables are empty. Auto-seeding from baseline cms_store.json...');
+      const seedData = await loadBaselineFromFile();
+      await syncAllToSupabase(seedData);
+      return seedData;
+    }
+
+    return {
+      charterMembers,
+      historyEntries,
+      services,
+      videos,
+      meetings,
+      lastUpdated: new Date().toISOString(),
+    };
+  } catch (err) {
+    console.error('Failed to load from Supabase:', err);
+    return null;
+  }
+}
+
+/**
+ * Syncs full CMS data snapshot to Supabase tables
+ */
+export async function syncAllToSupabase(data: CMSStoreData): Promise<boolean> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return false;
+
+  try {
+    if (data.charterMembers && data.charterMembers.length > 0) {
+      const rows = data.charterMembers.map(mapCharterMemberToRow);
+      await supabase.from('charter_members').upsert(rows);
+    }
+    if (data.services && data.services.length > 0) {
+      const rows = data.services.map(mapServiceToRow);
+      await supabase.from('services').upsert(rows);
+    }
+    if (data.videos && data.videos.length > 0) {
+      const rows = data.videos.map(mapVideoToRow);
+      await supabase.from('videos').upsert(rows);
+    }
+    if (data.historyEntries && data.historyEntries.length > 0) {
+      const rows = data.historyEntries.map(mapHistoryToRow);
+      await supabase.from('history_entries').upsert(rows);
+    }
+    if (data.meetings && data.meetings.length > 0) {
+      const rows = data.meetings.map(mapMeetingToRow);
+      await supabase.from('meetings').upsert(rows);
+    }
+    return true;
+  } catch (err) {
+    console.error('Error syncing data to Supabase:', err);
+    return false;
+  }
+}
 
 async function loadFromKV(): Promise<CMSStoreData | null> {
   if (!KV_REST_URL || !KV_REST_TOKEN) return null;
@@ -316,40 +447,53 @@ async function syncToGitHub(data: CMSStoreData): Promise<void> {
 
 /**
  * Loads the CMS Store from available persistence tiers:
- * 1. In-memory cache
- * 2. Remote KV (Upstash / Vercel KV)
- * 3. Serverless /tmp/cms_store.json
- * 4. Primary disk file src/data/cms_store.json
- * 5. Verified seed fallback
+ * 1. Process Memory Cache (short TTL)
+ * 2. PRIMARY: Supabase PostgreSQL Database
+ * 3. Remote KV (Upstash / Vercel KV)
+ * 4. Serverless /tmp/cms_store.json
+ * 5. Primary codebase file src/data/cms_store.json
+ * 6. Verified seed fallback
  */
-export async function loadCMSStore(): Promise<CMSStoreData> {
-  if (inMemoryStore) {
+export async function loadCMSStore(forceFresh = false): Promise<CMSStoreData> {
+  const now = Date.now();
+  if (!forceFresh && inMemoryStore && now - lastCacheTime < CACHE_TTL_MS) {
     return inMemoryStore;
   }
 
-  // Tier 1: Try Remote KV
+  // TIER 1 (PRIMARY): Supabase Database
+  const supabaseData = await loadFromSupabase();
+  if (supabaseData) {
+    inMemoryStore = supabaseData;
+    lastCacheTime = now;
+    return supabaseData;
+  }
+
+  // TIER 2: Remote KV if configured
   const kvData = await loadFromKV();
   if (kvData) {
     inMemoryStore = kvData;
+    lastCacheTime = now;
     return kvData;
   }
 
-  // Tier 2: Try /tmp/cms_store.json on serverless environments
+  // TIER 3: /tmp/cms_store.json on serverless environments
   try {
     const tmpData = await fs.readFile(TMP_STORE_FILE_PATH, 'utf-8');
     const parsed = JSON.parse(tmpData) as CMSStoreData;
     if (parsed && Array.isArray(parsed.services)) {
       inMemoryStore = parsed;
+      lastCacheTime = now;
       return parsed;
     }
   } catch {
-    // /tmp does not exist yet or is not readable, proceed to primary file
+    // /tmp not present or empty
   }
 
-  // Tier 3: Primary codebase file
+  // TIER 4: Primary codebase file
   try {
     const rawData = await fs.readFile(STORE_FILE_PATH, 'utf-8');
     inMemoryStore = JSON.parse(rawData) as CMSStoreData;
+    lastCacheTime = now;
     return inMemoryStore;
   } catch (err: unknown) {
     const isNotFound = (err as NodeJS.ErrnoException).code === 'ENOENT';
@@ -357,11 +501,13 @@ export async function loadCMSStore(): Promise<CMSStoreData> {
       const initial = createInitialSeedData();
       await saveCMSStore(initial);
       inMemoryStore = initial;
+      lastCacheTime = now;
       return initial;
     }
     console.error('Error loading cms_store.json, creating fallback:', err);
     const initial = createInitialSeedData();
     inMemoryStore = initial;
+    lastCacheTime = now;
     return initial;
   }
 }
@@ -369,6 +515,7 @@ export async function loadCMSStore(): Promise<CMSStoreData> {
 /**
  * Saves the CMS Store across persistence tiers:
  * - Updates in-memory store
+ * - Persists to Supabase PostgreSQL (PRIMARY)
  * - Persists to Upstash/Vercel KV if configured
  * - Syncs to GitHub repository if GITHUB_TOKEN configured
  * - Writes to primary disk path or serverless /tmp fallback if read-only
@@ -376,6 +523,12 @@ export async function loadCMSStore(): Promise<CMSStoreData> {
 export async function saveCMSStore(data: CMSStoreData): Promise<void> {
   data.lastUpdated = new Date().toISOString();
   inMemoryStore = data;
+  lastCacheTime = Date.now();
+
+  // Tier 1 (Primary): Supabase PostgreSQL Database
+  syncAllToSupabase(data).catch((err) => {
+    console.error('CMS Supabase background sync warning:', err);
+  });
 
   // Sync to Cloud KV (non-blocking failure)
   saveToKV(data).catch(() => {});
@@ -485,6 +638,13 @@ export async function saveCMSCharterMember(
     store.charterMembers.push(member);
   }
 
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    try {
+      await supabase.from('charter_members').upsert(mapCharterMemberToRow(member));
+    } catch {}
+  }
+
   await saveCMSStore(store);
   return member;
 }
@@ -501,6 +661,12 @@ export async function deleteCMSCharterMember(id: string): Promise<boolean> {
     .map((m) => (m.parentId === id ? { ...m, parentId: fallbackParent } : m));
 
   if (store.charterMembers.length !== initialLen) {
+    const supabase = getSupabaseAdminClient();
+    if (supabase) {
+      try {
+        await supabase.from('charter_members').delete().eq('id', id);
+      } catch {}
+    }
     await saveCMSStore(store);
     return true;
   }
@@ -650,6 +816,13 @@ export async function saveCMSHistory(
     store.historyEntries.push(entry);
   }
 
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    try {
+      await supabase.from('history_entries').upsert(mapHistoryToRow(entry));
+    } catch {}
+  }
+
   await saveCMSStore(store);
   return entry;
 }
@@ -659,6 +832,12 @@ export async function deleteCMSHistory(id: string): Promise<boolean> {
   const initialLen = store.historyEntries.length;
   store.historyEntries = store.historyEntries.filter((h) => h.id !== id);
   if (store.historyEntries.length !== initialLen) {
+    const supabase = getSupabaseAdminClient();
+    if (supabase) {
+      try {
+        await supabase.from('history_entries').delete().eq('id', id);
+      } catch {}
+    }
     await saveCMSStore(store);
     return true;
   }
@@ -750,6 +929,13 @@ export async function saveCMSService(
     store.services.push(service);
   }
 
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    try {
+      await supabase.from('services').upsert(mapServiceToRow(service));
+    } catch {}
+  }
+
   await saveCMSStore(store);
   return service;
 }
@@ -759,6 +945,12 @@ export async function deleteCMSService(id: string): Promise<boolean> {
   const initialLen = store.services.length;
   store.services = store.services.filter((s) => s.id !== id);
   if (store.services.length !== initialLen) {
+    const supabase = getSupabaseAdminClient();
+    if (supabase) {
+      try {
+        await supabase.from('services').delete().eq('id', id);
+      } catch {}
+    }
     await saveCMSStore(store);
     return true;
   }
@@ -874,6 +1066,13 @@ export async function saveCMSVideo(
     }
   }
 
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    try {
+      await supabase.from('videos').upsert(mapVideoToRow(video));
+    } catch {}
+  }
+
   await saveCMSStore(store);
   return video;
 }
@@ -883,6 +1082,105 @@ export async function deleteCMSVideo(id: string): Promise<boolean> {
   const initialLen = store.videos.length;
   store.videos = store.videos.filter((v) => v.id !== id && v.youtubeId !== id);
   if (store.videos.length !== initialLen) {
+    const supabase = getSupabaseAdminClient();
+    if (supabase) {
+      try {
+        await supabase.from('videos').delete().eq('id', id);
+      } catch {}
+    }
+    await saveCMSStore(store);
+    return true;
+  }
+  return false;
+}
+
+/* =========================================================================
+   MEETINGS CMS OPERATIONS
+   ========================================================================= */
+
+export async function getCMSMeetings(
+  publishedOnly = false
+): Promise<CMSMeeting[]> {
+  const store = await loadCMSStore();
+  let list = store.meetings || [];
+  if (publishedOnly) {
+    list = list.filter((m) => m.isPublished);
+  }
+  return list.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+export async function saveCMSMeeting(
+  data: Partial<CMSMeeting> & { title: string; date: string }
+): Promise<CMSMeeting> {
+  const store = await loadCMSStore();
+  const now = new Date().toISOString();
+
+  let meeting: CMSMeeting;
+
+  if (data.id) {
+    const idx = (store.meetings || []).findIndex((m) => m.id === data.id);
+    if (idx >= 0) {
+      meeting = {
+        ...store.meetings[idx],
+        ...data,
+        updatedAt: now,
+      };
+      store.meetings[idx] = meeting;
+    } else {
+      meeting = {
+        id: data.id,
+        title: data.title,
+        date: data.date,
+        time: data.time || '10:00 AM',
+        location: data.location || 'Bangalore, India',
+        status: data.status || 'upcoming',
+        description: data.description || '',
+        agenda: data.agenda || [],
+        isPublished: data.isPublished !== false,
+        createdAt: now,
+        updatedAt: now,
+      };
+      store.meetings.push(meeting);
+    }
+  } else {
+    meeting = {
+      id: `meeting-${Date.now()}`,
+      title: data.title,
+      date: data.date,
+      time: data.time || '10:00 AM',
+      location: data.location || 'Bangalore, India',
+      status: data.status || 'upcoming',
+      description: data.description || '',
+      agenda: data.agenda || [],
+      isPublished: data.isPublished !== false,
+      createdAt: now,
+      updatedAt: now,
+    };
+    store.meetings.push(meeting);
+  }
+
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    try {
+      await supabase.from('meetings').upsert(mapMeetingToRow(meeting));
+    } catch {}
+  }
+
+  await saveCMSStore(store);
+  return meeting;
+}
+
+export async function deleteCMSMeeting(id: string): Promise<boolean> {
+  const store = await loadCMSStore();
+  const initialLen = (store.meetings || []).length;
+  store.meetings = (store.meetings || []).filter((m) => m.id !== id);
+  if (store.meetings.length !== initialLen) {
+    const supabase = getSupabaseAdminClient();
+    if (supabase) {
+      try {
+        await supabase.from('meetings').delete().eq('id', id);
+      } catch {}
+    }
     await saveCMSStore(store);
     return true;
   }
