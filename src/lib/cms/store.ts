@@ -335,35 +335,60 @@ async function loadFromSupabase(): Promise<CMSStoreData | null> {
 /**
  * Syncs full CMS data snapshot to Supabase tables
  */
-export async function syncAllToSupabase(data: CMSStoreData): Promise<boolean> {
+export async function syncAllToSupabase(
+  data: CMSStoreData
+): Promise<{ success: boolean; errors: string[] }> {
   const supabase = getSupabaseAdminClient();
-  if (!supabase) return false;
+  const errors: string[] = [];
+  if (!supabase) return { success: false, errors: ['Supabase client not available'] };
 
   try {
     if (data.charterMembers && data.charterMembers.length > 0) {
       const rows = data.charterMembers.map(mapCharterMemberToRow);
-      await supabase.from('charter_members').upsert(rows);
+      const res = await supabase.from('charter_members').upsert(rows);
+      if (res.error) {
+        console.error('Supabase charter_members upsert error:', res.error);
+        errors.push(`charter_members: ${res.error.message}`);
+      }
     }
     if (data.services && data.services.length > 0) {
       const rows = data.services.map(mapServiceToRow);
-      await supabase.from('services').upsert(rows);
+      const res = await supabase.from('services').upsert(rows);
+      if (res.error) {
+        console.error('Supabase services upsert error:', res.error);
+        errors.push(`services: ${res.error.message}`);
+      }
     }
     if (data.videos && data.videos.length > 0) {
       const rows = data.videos.map(mapVideoToRow);
-      await supabase.from('videos').upsert(rows);
+      const res = await supabase.from('videos').upsert(rows);
+      if (res.error) {
+        console.error('Supabase videos upsert error:', res.error);
+        errors.push(`videos: ${res.error.message}`);
+      }
     }
     if (data.historyEntries && data.historyEntries.length > 0) {
       const rows = data.historyEntries.map(mapHistoryToRow);
-      await supabase.from('history_entries').upsert(rows);
+      const res = await supabase.from('history_entries').upsert(rows);
+      if (res.error) {
+        console.error('Supabase history_entries upsert error:', res.error);
+        errors.push(`history_entries: ${res.error.message}`);
+      }
     }
     if (data.meetings && data.meetings.length > 0) {
       const rows = data.meetings.map(mapMeetingToRow);
-      await supabase.from('meetings').upsert(rows);
+      const res = await supabase.from('meetings').upsert(rows);
+      if (res.error) {
+        console.error('Supabase meetings upsert error:', res.error);
+        errors.push(`meetings: ${res.error.message}`);
+      }
     }
-    return true;
-  } catch (err) {
-    console.error('Error syncing data to Supabase:', err);
-    return false;
+    return { success: errors.length === 0, errors };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('Error syncing data to Supabase:', msg);
+    errors.push(msg);
+    return { success: false, errors };
   }
 }
 
@@ -526,9 +551,11 @@ export async function saveCMSStore(data: CMSStoreData): Promise<void> {
   lastCacheTime = Date.now();
 
   // Tier 1 (Primary): Supabase PostgreSQL Database
-  syncAllToSupabase(data).catch((err) => {
-    console.error('CMS Supabase background sync warning:', err);
-  });
+  try {
+    await syncAllToSupabase(data);
+  } catch (err) {
+    console.error('CMS Supabase sync error:', err);
+  }
 
   // Sync to Cloud KV (non-blocking failure)
   saveToKV(data).catch(() => {});

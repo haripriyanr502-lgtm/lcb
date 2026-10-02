@@ -121,9 +121,29 @@ export async function POST(request: Request) {
       const store = await loadCMSStore(true);
       await saveCMSStore(store);
 
+      const supabase = getSupabaseAdminClient();
+      let tableCounts = null;
+      if (supabase) {
+        const [m, s, v, h, mt] = await Promise.all([
+          supabase.from('charter_members').select('*', { count: 'exact', head: true }),
+          supabase.from('services').select('*', { count: 'exact', head: true }),
+          supabase.from('videos').select('*', { count: 'exact', head: true }),
+          supabase.from('history_entries').select('*', { count: 'exact', head: true }),
+          supabase.from('meetings').select('*', { count: 'exact', head: true }),
+        ]);
+        tableCounts = {
+          charter_members: m.count ?? 0,
+          services: s.count ?? 0,
+          videos: v.count ?? 0,
+          history_entries: h.count ?? 0,
+          meetings: mt.count ?? 0,
+        };
+      }
+
       return NextResponse.json({
         success: true,
         message: 'CMS baseline data successfully synchronized to Supabase.',
+        tableCounts,
         counts: {
           charterMembers: store.charterMembers.length,
           services: store.services.length,
