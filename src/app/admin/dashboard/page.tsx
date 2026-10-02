@@ -7,6 +7,7 @@ import {
   History,
   Briefcase,
   Video,
+  Calendar,
   ArrowRight,
   ShieldCheck,
   PlusCircle,
@@ -36,6 +37,11 @@ interface DashboardStats {
     total: number;
     published: number;
     flaggedForVerification: number;
+  };
+  meetings?: {
+    total: number;
+    published: number;
+    upcoming: number;
   };
   lastUpdated: string;
 }
@@ -216,6 +222,40 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
         </div>
+
+        {/* Meetings & Assemblies */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+              Cadence
+            </span>
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold text-slate-500 block">
+              Official Meetings
+            </span>
+            <div className="text-3xl font-black text-slate-900 mt-0.5 mb-1">
+              {isLoading ? '...' : stats?.meetings?.total || 0}
+            </div>
+            <p className="text-[11px] text-slate-600">
+              {stats?.meetings?.upcoming || 0} upcoming • {stats?.meetings?.published || 0} live
+            </p>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            <Link
+              href="/admin/meetings"
+              className="inline-flex items-center justify-between w-full text-xs font-bold text-blue-900 hover:text-blue-950 group"
+            >
+              <span>Manage Meetings</span>
+              <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Quick Action Operations */}
@@ -227,7 +267,7 @@ export default function AdminDashboardPage() {
           Add or configure content modules. Changes take effect on the public website immediately upon publishing.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <Link
             href="/admin/charter-members"
             className="p-5 rounded-2xl bg-slate-50 hover:bg-amber-50/70 border border-slate-200 hover:border-amber-300 transition-all flex items-center gap-3.5 group"
@@ -292,6 +332,23 @@ export default function AdminDashboardPage() {
               </span>
               <span className="text-[11px] text-slate-500">
                 Link Activity Media
+              </span>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/meetings"
+            className="p-5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 transition-all flex items-center gap-3.5 group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold shrink-0">
+              <PlusCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-xs font-bold text-slate-900 block group-hover:text-emerald-950">
+                + Schedule Meeting
+              </span>
+              <span className="text-[11px] text-slate-500">
+                Monthly Assembly
               </span>
             </div>
           </Link>

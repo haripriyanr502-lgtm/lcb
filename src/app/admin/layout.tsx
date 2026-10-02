@@ -10,6 +10,7 @@ import {
   History,
   Briefcase,
   Video,
+  Calendar,
   LogOut,
   ExternalLink,
   Menu,
@@ -109,6 +110,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       label: 'Video Media Catalog',
       href: '/admin/videos',
       icon: Video,
+    },
+    {
+      label: 'Meetings & Assemblies',
+      href: '/admin/meetings',
+      icon: Calendar,
     },
   ];
 
