@@ -37,6 +37,11 @@ export async function GET(request: Request) {
           (v) => v.requiresVerification
         ).length,
       },
+      meetings: {
+        total: (store.meetings || []).length,
+        published: (store.meetings || []).filter((m) => m.isPublished).length,
+        upcoming: (store.meetings || []).filter((m) => m.status === 'upcoming').length,
+      },
       lastUpdated: store.lastUpdated,
     };
 
