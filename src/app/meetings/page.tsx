@@ -5,29 +5,27 @@ import Link from 'next/link';
 import { Container } from '@/components/sections/Container';
 import { MeetingCard } from '@/components/meetings/MeetingCard';
 import { SecretaryRequestModal } from '@/components/meetings/SecretaryRequestModal';
-import { MEETINGS_DATA, OFFICIAL_MEETING_SCHEDULE } from '@/data/meetings';
+import { MEETINGS_DATA } from '@/data/meetings';
 import { JOINT_MEETING_VIDEOS } from '@/data/videos';
 import { VideoCard } from '@/components/media/VideoCard';
 import { SECRETARY_REQUEST_CONFIG, ORGANIZATION } from '@/lib/constants';
-import { VideoItem } from '@/types';
-import { CMSVideo } from '@/types/cms';
+import { VideoItem, Meeting } from '@/types';
+import { CMSVideo, CMSMeeting } from '@/types/cms';
 import {
   Calendar,
   Clock,
   Users,
-  Shield,
   HeartHandshake,
-  CheckCircle2,
   Building2,
-  FileText,
-  AlertCircle,
   Video,
+  Shield,
   Settings,
 } from 'lucide-react';
 
 export default function MeetingsPage() {
   const [isSecretaryModalOpen, setIsSecretaryModalOpen] = useState(false);
   const [jointVideos, setJointVideos] = useState<VideoItem[]>(JOINT_MEETING_VIDEOS);
+  const [meetingsList, setMeetingsList] = useState<Meeting[]>(MEETINGS_DATA);
 
   useEffect(() => {
     let isMounted = true;
@@ -53,7 +51,38 @@ export default function MeetingsPage() {
         console.error('Failed to load joint meeting videos, using baseline:', err);
       }
     }
+
+    async function fetchMeetings() {
+      try {
+        const res = await fetch('/api/content/meetings', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.meetings) && data.meetings.length > 0) {
+            const mapped: Meeting[] = data.meetings.map((m: CMSMeeting) => ({
+              id: m.id,
+              title: m.title,
+              date: m.date,
+              time: m.time,
+              location: m.location,
+              status: m.status,
+              description: m.description,
+              agenda: m.agenda || [],
+              scheduleBreakdown: [
+                { time: '6:30 PM – 7:30 PM', session: 'Board Meeting' },
+                { time: '7:30 PM', session: 'General Body Meeting', highlight: true },
+                { time: 'Followed by', session: 'Networking & Fellowship' },
+              ],
+            }));
+            setMeetingsList(mapped);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load dynamic meetings, using baseline:', err);
+      }
+    }
+
     fetchVideos();
+    fetchMeetings();
     return () => {
       isMounted = false;
     };
@@ -188,7 +217,7 @@ export default function MeetingsPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-            {MEETINGS_DATA.map((meeting) => (
+            {meetingsList.map((meeting) => (
               <MeetingCard
                 key={meeting.id}
                 meeting={meeting}
